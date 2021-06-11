@@ -13,6 +13,7 @@ const Panel = imports.ui.panel;
 var { ANIMATION_TIME } = imports.ui.overview;
 
 const Workspaces = extension.imports.workspaces;
+const CosmicPanel = extension.imports.panel;
 
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail; // XXX
 const LayoutManager = imports.ui.layout; // XXX
@@ -601,6 +602,8 @@ function enable() {
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
         });
     });
+
+    new CosmicPanel.PanelMonitor(0);
 }
 
 function disable() {
