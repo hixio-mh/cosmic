@@ -9,6 +9,13 @@ const PanelMenu = imports.ui.panelMenu;
 const SwitcherPopup = imports.ui.switcherPopup;
 const Util = imports.misc.util;
 const ViewSelector = imports.ui.viewSelector;
+const Panel = imports.ui.panel;
+var { ANIMATION_TIME } = imports.ui.overview;
+
+const Workspaces = extension.imports.workspaces;
+
+const WorkspaceThumbnail = imports.ui.workspaceThumbnail; // XXX
+const LayoutManager = imports.ui.layout; // XXX
 
 let activities_signal_show = null;
 let appMenu_signal_show = null;
@@ -570,9 +577,35 @@ function enable() {
     settings.connect("changed::clock-alignment", () => {
         clock_alignment(settings.get_enum("clock-alignment"));
     });
+
+    global.foobar = new Workspaces.OverviewActorMonitor(0);
+    //global.foobar = new Workspaces.MultiMonitorsOverview(0);
+    Main.layoutManager.overviewGroup.add_child(global.foobar);
+
+    inject(Main.overview.viewSelector._workspacesDisplay, "_syncWorkspacesActualGeometry", function() {
+        const primaryView = this._getPrimaryView();
+        if (!primaryView || this._inWindowFade)
+            return;
+            
+	if (primaryView)
+            primaryView.ease({
+                ...this._actualGeometry,
+                duration: Main.overview.animationInProgress ? ANIMATION_TIME : 0,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+	
+        Main.overview.viewSelector._workspacesDisplay._workspacesViews[0].ease({ // XXX
+	//global.foobar._controls._workspacesViews.ease({
+            ...global.foobar._controls.getWorkspacesActualGeometry(),
+            duration: Main.overview.animationInProgress ? ANIMATION_TIME : 0,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+        });
+    });
 }
 
 function disable() {
+    // TODO: revert workspace change
+
     // Restore applications shortcut
     const SHELL_KEYBINDINGS_SCHEMA = 'org.gnome.shell.keybindings';
     Main.wm.removeKeybinding('toggle-application-view');
