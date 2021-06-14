@@ -584,19 +584,22 @@ function enable() {
     Main.layoutManager.overviewGroup.add_child(global.foobar);
 
     inject(Main.overview.viewSelector._workspacesDisplay, "_syncWorkspacesActualGeometry", function() {
-        const primaryView = this._getPrimaryView();
-        if (!primaryView || this._inWindowFade)
+        if (this._inWindowFade)
             return;
             
-	if (primaryView)
+        const primaryView = this._getPrimaryView();
+	    if (primaryView)
             primaryView.ease({
                 ...this._actualGeometry,
                 duration: Main.overview.animationInProgress ? ANIMATION_TIME : 0,
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             });
 	
-        Main.overview.viewSelector._workspacesDisplay._workspacesViews[0].ease({ // XXX
-	//global.foobar._controls._workspacesViews.ease({
+        //Main.overview.viewSelector._workspacesDisplay._workspacesViews[0].ease({ // XXX
+        const view = global.foobar._controls._workspacesViews;
+        if (!view)
+            return;
+        global.foobar._controls._workspacesViews.ease({
             ...global.foobar._controls.getWorkspacesActualGeometry(),
             duration: Main.overview.animationInProgress ? ANIMATION_TIME : 0,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,

@@ -5,6 +5,7 @@ const LayoutManager = imports.ui.layout;
 const ViewSelector = imports.ui.viewSelector;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const OverviewControls = imports.ui.overviewControls;
+const Overview = imports.ui.overview;
 const Dash = imports.ui.dash;
 var { ControlsLayout, DashSlider, DashSpacer, ThumbnailsSlider } = imports.ui.overviewControls;
 var { ThumbnailState } = imports.ui.workspaceThumbnail;
