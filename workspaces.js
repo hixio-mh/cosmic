@@ -17,19 +17,19 @@ class OverviewActorMonitor extends St.BoxLayout {
             vertical: true,
         });
 
-	this.add_constraint(new LayoutManager.MonitorConstraint({ index: monitorIndex }));
+        this.add_constraint(new LayoutManager.MonitorConstraint({ index: monitorIndex }));
 
         const searchEntry = new St.Entry({}); // placeholder
-	//this._controls = new ControlsManagerMonitor(searchEntry, monitorIndex);
-	this._controls = new MultiMonitorsControlsManager(monitorIndex);
-	this.add_child(this._controls);
+        //this._controls = new ControlsManagerMonitor(searchEntry, monitorIndex);
+        this._controls = new MultiMonitorsControlsManager(monitorIndex);
+        this.add_child(this._controls);
 
-	this._showingId = Main.overview.connect('showing', () => this._controls.show());
+        this._showingId = Main.overview.connect('showing', () => this._controls.show());
         this._hidingId = Main.overview.connect('hiding', () => this._controls.hide());
-	this.connect('destroy', () => {
+        this.connect('destroy', () => {
             Main.overview.disconnect(this._showingId);
             Main.overview.disconnect(this._hidingId);
-	});
+        });
     }
 });
 
@@ -78,7 +78,7 @@ class MultiMonitorsControlsManager extends St.Widget {
         this.connect('notify::allocation', this._updateSpacerVisibility.bind(this));
         this.connect('destroy', this._onDestroy.bind(this));
 
-	// Added
+        // Added
         this._thumbnailsSlider.layout.slideDirection = OverviewControls.SlideDirection.LEFT;
     }
 
@@ -93,7 +93,7 @@ class MultiMonitorsControlsManager extends St.Widget {
         thumbnailsSlider = this._thumbnailsSlider;
 
         //if (this._settings.get_boolean(THUMBNAILS_ON_LEFT_SIDE_ID)) {
-	if (true) {
+        if (true) {
             let first = this._group.get_first_child();
             if (first != thumbnailsSlider) {
                 this._thumbnailsSlider.layout.slideDirection = OverviewControls.SlideDirection.LEFT;
@@ -310,12 +310,12 @@ class ControlsManagerMonitor extends OverviewControls.ControlsManager {
 
         this.connect('destroy', this._onDestroy.bind(this));
 
-	// Added
-    	this._thumbnailsSlider._getAlwaysZoomOut = () => true;
-	this.dash.hide();
-	this.viewSelector._onStageKeyPress = function(actor, event) {};
-	//this.viewSelector.x_expand = true;
-	//this.viewSelector.y_expand = true;
+        // Added
+            this._thumbnailsSlider._getAlwaysZoomOut = () => true;
+        this.dash.hide();
+        this.viewSelector._onStageKeyPress = function(actor, event) {};
+        //this.viewSelector.x_expand = true;
+        //this.viewSelector.y_expand = true;
         // this._thumbnailsSlider.layout.slideDirection = OverviewControls.SlideDirection.LEFT;
         //this._pageChangedId = Main.overview.viewSelector.connect('page-changed', this._setVisibility.bind(this));
         //this._pageEmptyId = Main.overview.viewSelector.connect('page-empty', this._onPageEmpty.bind(this));
@@ -391,13 +391,13 @@ class WorkspaceThumbnailMonitor extends WorkspaceThumbnail.WorkspaceThumbnail {
 var ThumbnailsBoxMonitor = GObject.registerClass(
 class ThumbnailsBoxMonitor extends WorkspaceThumbnail.ThumbnailsBox {
     _init(scrollAdjustment, monitorIndex) {
-	this.monitorIndex = monitorIndex;
+        this.monitorIndex = monitorIndex;
 
-	super._init(scrollAdjustment);
+        super._init(scrollAdjustment);
 
-	// XXX
+        // XXX
         //controls._thumbnailsBox.set_style_class_name('workspace-thumbnails workspace-thumbnails-left'); // XXX
-	//this._updatePorthole();
+        //this._updatePorthole();
     }
 
     addThumbnails(start, count) {
