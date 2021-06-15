@@ -39,7 +39,6 @@ class MultiMonitorsControlsManager extends St.Widget {
         this._monitorIndex = index;
         this._workspacesViews = null;
         this._spacer_height = 0;
-        this._fixGeometry = 0;
         this._visible = false;
         
         let layout = new OverviewControls.ControlsLayout();
@@ -111,7 +110,6 @@ class MultiMonitorsControlsManager extends St.Widget {
                 this._group.set_child_above_sibling(thumbnailsSlider, last);
             }
         }
-        this._fixGeometry = 3;
     }
 
     _updateSpacerVisibility() {
@@ -175,13 +173,10 @@ class MultiMonitorsControlsManager extends St.Widget {
         let opacity = null;
         if (thumbnailsVisible) {
             opacity = 255;
-            if (this._fixGeometry===1)
-                this._fixGeometry = 0;
             this._thumbnailsSlider.slideIn();
         }
         else {
             opacity = 0;
-            this._fixGeometry = 1;
             this._thumbnailsSlider.slideOut();
         }
 
@@ -206,24 +201,7 @@ class MultiMonitorsControlsManager extends St.Widget {
         const geometry = this.getWorkspacesActualGeometry();
 
         if (!geometry) {
-            this._fixGeometry = 0;
             return;
-        }
-
-        if (this._fixGeometry) {
-            const width = this._thumbnailsSlider.get_width();
-            if (this._fixGeometry===2) {
-                geometry.width = geometry.width-width;
-                if (this._thumbnailsSlider.layout.slideDirection === OverviewControls.SlideDirection.LEFT)
-                    geometry.x = geometry.x + width;
-            }
-            else if (this._fixGeometry===3) {
-                if (this._thumbnailsSlider.layout.slideDirection === OverviewControls.SlideDirection.LEFT)
-                    geometry.x = geometry.x + width;
-                else
-                    geometry.x = geometry.x - width;
-            }
-            this._fixGeometry = 0;
         }
 
         this._workspacesViews.ease({
@@ -236,8 +214,6 @@ class MultiMonitorsControlsManager extends St.Widget {
     hide() {
         this._visible = false;
         this._workspacesViews.opacity = 255;
-        if (this._fixGeometry===1)
-            this._fixGeometry = 2;
         const geometry = this.getWorkspacesActualGeometry();
         this._workspacesViews.ease({
             ...geometry,
