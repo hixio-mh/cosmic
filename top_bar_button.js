@@ -1,13 +1,11 @@
 const { Atk, Clutter, Gio, GLib, GObject, Meta, Shell, St } = imports.gi;
+const ExtensionUtils = imports.misc.extensionUtils;
+const extension = ExtensionUtils.getCurrentExtension();
 const Main = imports.ui.main;
 const OverviewControls = imports.ui.overviewControls;
 const PanelMenu = imports.ui.panelMenu;
 
-
-var OVERVIEW_WORKSPACES = 0;
-var OVERVIEW_APPLICATIONS = 1;
-var OVERVIEW_LAUNCHER = 2;
-
+var { OVERVIEW_WORKSPACES, OVERVIEW_APPLICATIONS, OVERVIEW_LAUNCHER, overview_visible, overview_show, overview_hide, overview_toggle } = extension.imports.overview;
 
 var CosmicTopBarButton = GObject.registerClass(
 class CosmicTopBarButton extends PanelMenu.Button {
