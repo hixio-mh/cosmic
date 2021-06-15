@@ -19,6 +19,9 @@ class OverviewActorMonitor extends St.BoxLayout {
 
         this.add_constraint(new LayoutManager.MonitorConstraint({ index: monitorIndex }));
 
+        this._spacer = new St.Widget();
+        this.add_actor(this._spacer);
+
         const searchEntry = new St.Entry({}); // placeholder
         //this._controls = new ControlsManagerMonitor(searchEntry, monitorIndex);
         this._controls = new MultiMonitorsControlsManager(monitorIndex);
@@ -119,8 +122,10 @@ class MultiMonitorsControlsManager extends St.Widget {
         let top_spacer_height = Main.layoutManager.primaryMonitor.height;
 
         let panelGhost_height = 0;
-        if (Main.mmOverview[this._monitorIndex]._overview._panelGhost)
-            panelGhost_height = Main.mmOverview[this._monitorIndex]._overview._panelGhost.get_height();
+        //if (Main.mmOverview[this._monitorIndex]._overview._panelGhost)
+        //if (global.foobar._panelGhost)
+            //panelGhost_height = Main.mmOverview[this._monitorIndex]._overview._panelGhost.get_height();
+        //    panelGhost_height = global.foobar._panelGhost.get_height();
 
         let allocation = Main.overview._overview._controls.allocation;
         let primaryControl_height = allocation.get_height();
@@ -129,7 +134,8 @@ class MultiMonitorsControlsManager extends St.Widget {
         top_spacer_height -= primaryControl_height + panelGhost_height + bottom_spacer_height;
         top_spacer_height = Math.round(top_spacer_height);
 
-        let spacer = Main.mmOverview[this._monitorIndex]._overview._spacer;
+        //let spacer = Main.mmOverview[this._monitorIndex]._overview._spacer;
+        let spacer = global.foobar._spacer;
         if (spacer.get_height()!=top_spacer_height) {
             this._spacer_height = top_spacer_height;
             spacer.set_height(top_spacer_height);
