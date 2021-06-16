@@ -119,14 +119,10 @@ class ControlsManagerMonitor extends OverviewControls.ControlsManager {
 
         // from multi-monitor
         this._monitorIndex = monitorIndex;
-        this._workspacesViews = null;
         this._spacer_height = 0;
         
         this._pageChangedId = Main.overview.viewSelector.connect('page-changed', this._setVisibility.bind(this));
         this._pageEmptyId = Main.overview.viewSelector.connect('page-empty', this._onPageEmpty.bind(this));
-
-        this._thumbnailsSlider.slideOut();
-        this._thumbnailsBox._updatePorthole();
 
         // Added
         let first = this._group.get_first_child();
@@ -190,15 +186,6 @@ class ControlsManagerMonitor extends OverviewControls.ControlsManager {
             opacity = 0;
             this._thumbnailsSlider.slideOut();
         }
-
-        if (!this._workspacesViews)
-            return;
-
-        this._workspacesViews.ease({
-            opacity: opacity,
-            duration: OverviewControls.SIDE_CONTROLS_ANIMATION_TIME,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-        });
     }
 
     _onPageEmpty() {
