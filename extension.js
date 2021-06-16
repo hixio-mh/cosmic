@@ -14,6 +14,7 @@ var { ANIMATION_TIME } = imports.ui.overview;
 
 var { CosmicTopBarButton } = extension.imports.top_bar_button;
 var { OVERVIEW_WORKSPACES, OVERVIEW_APPLICATIONS, OVERVIEW_LAUNCHER, overview_visible, overview_show, overview_hide, overview_toggle } = extension.imports.overview;
+var { settings_new_schema } = extension.imports.settings;
 const Workspaces = extension.imports.workspaces;
 const CosmicPanel = extension.imports.panel;
 
@@ -475,22 +476,4 @@ function disable() {
     }
 
     clock_alignment(CLOCK_CENTER);
-}
-
-function settings_new_schema(schema) {
-    const GioSSS = Gio.SettingsSchemaSource;
-    const schemaDir = extension.dir.get_child("schemas");
-
-    let schemaSource = schemaDir.query_exists(null) ?
-        GioSSS.new_from_directory(schemaDir.get_path(), GioSSS.get_default(), false) :
-        GioSSS.get_default();
-
-    const schemaObj = schemaSource.lookup(schema, true);
-
-    if (!schemaObj) {
-        throw new Error("Schema " + schema + " could not be found for extension "
-            + extension.metadata.uuid + ". Please check your installation.")
-    }
-
-    return new Gio.Settings({ settings_schema: schemaObj });
 }

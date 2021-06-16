@@ -14,7 +14,7 @@ $(info UUID is "$(UUID)")
 
 .PHONY: all clean install zip-file
 
-all: extension.js overview.js workspaces.js panel.js top_bar_button.js metadata.json prefs.js schemas/org.gnome.shell.extensions.pop-cosmic.gschema.xml schemas/gschemas.compiled
+all: extension.js overview.js workspaces.js panel.js settings.js top_bar_button.js metadata.json prefs.js schemas/org.gnome.shell.extensions.pop-cosmic.gschema.xml schemas/gschemas.compiled
 	rm -rf build
 	for i in $^ ; do \
 		mkdir -p build/$$(dirname $$i) ; \
