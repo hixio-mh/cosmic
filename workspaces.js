@@ -164,7 +164,6 @@ class ControlsManagerMonitor extends OverviewControls.ControlsManager {
         }
     }
 
-    // From multi-monitor
     _setVisibility() {
         // Ignore the case when we're leaving the overview, since
         // actors will be made visible again when entering the overview
@@ -174,22 +173,21 @@ class ControlsManagerMonitor extends OverviewControls.ControlsManager {
             (Main.overview.animationInProgress && !Main.overview.visibleTarget))
             return;
 
-        let activePage = Main.overview.viewSelector.getActivePage();
+        //let activePage = this.viewSelector.getActivePage();
+        let activePage = Main.overview.viewSelector.getActivePage(); // From multi-monitor
+        let dashVisible = activePage == ViewSelector.ViewPage.WINDOWS ||
+                           activePage == ViewSelector.ViewPage.APPS;
         let thumbnailsVisible = activePage == ViewSelector.ViewPage.WINDOWS;
 
-        let opacity = null;
-        if (thumbnailsVisible) {
-            opacity = 255;
-            this._thumbnailsSlider.slideIn();
-        }
-        else {
-            opacity = 0;
-            this._thumbnailsSlider.slideOut();
-        }
-    }
+        if (dashVisible)
+            this._dashSlider.slideIn();
+        else
+            this._dashSlider.slideOut();
 
-    _onPageEmpty() {
-        this._thumbnailsSlider.pageEmpty();
+        if (thumbnailsVisible)
+            this._thumbnailsSlider.slideIn();
+        else
+            this._thumbnailsSlider.slideOut();
     }
 });
 
