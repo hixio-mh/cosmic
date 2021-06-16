@@ -375,9 +375,10 @@ function enable() {
         clock_alignment(settings.get_enum("clock-alignment"));
     });
 
-    global.foobar = new Workspaces.OverviewActorMonitor(0);
+    //global.foobar = new Workspaces.OverviewActorMonitor(0);
+    global.foobar = new Workspaces.OverviewMonitor(0)._overview;
     //global.foobar = new Workspaces.MultiMonitorsOverview(0);
-    Main.layoutManager.overviewGroup.add_child(global.foobar);
+    //Main.layoutManager.overviewGroup.add_child(global.foobar);
 
     inject(Main.overview.viewSelector._workspacesDisplay, "_syncWorkspacesActualGeometry", function() {
         if (this._inWindowFade)

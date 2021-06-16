@@ -9,6 +9,58 @@ const Overview = imports.ui.overview;
 const Dash = imports.ui.dash;
 var { ControlsLayout, DashSlider, DashSpacer, ThumbnailsSlider } = imports.ui.overviewControls;
 var { ThumbnailState } = imports.ui.workspaceThumbnail;
+var { ShellInfo } = imports.ui.overview;
+
+class OverviewMonitor extends Overview.Overview {
+    constructor(monitorIndex) {
+        super();
+        this._monitorIndex = monitorIndex;
+        this.init();
+    }
+
+    init() {
+        this._initCalled = true;
+
+        if (this.isDummy)
+            return;
+
+        //this._overview = new OverviewActor();
+        this._overview = new OverviewActorMonitor(this._monitorIndex);
+        this._overview._delegate = this;
+        Main.layoutManager.overviewGroup.add_child(this._overview);
+        this._overview.connect('notify::allocation', () => this.emit('relayout'));
+
+        this._shellInfo = new ShellInfo();
+
+        Main.layoutManager.connect('monitors-changed', this._relayout.bind(this));
+        this._relayout();
+
+        //this._showingId = Main.overview.connect('showing', () => this.show());
+        //this._hidingId = Main.overview.connect('hiding', () => this.hide());
+    }
+
+    _updateBackgrounds() {
+    }
+
+    /*
+    _relayout() {
+        // To avoid updating the position and size of the workspaces
+        // we just hide the overview. The positions will be updated
+        // when it is next shown.
+        this.hide();
+
+        this._coverPane.set_position(0, 0);
+        this._coverPane.set_size(global.screen_width, global.screen_height);
+        
+        //this._updateBackgrounds();
+    }
+
+    _createOverview() {
+        super._createOverview();
+        Main.layoutManager.overviewGroup.remove_child(this._coverPane);
+    }
+    */
+}
 
 var OverviewActorMonitor = GObject.registerClass(
 class OverviewActorMonitor extends St.BoxLayout {
@@ -27,12 +79,14 @@ class OverviewActorMonitor extends St.BoxLayout {
         this._controls = new MultiMonitorsControlsManager(monitorIndex);
         this.add_child(this._controls);
 
+        /*
         this._showingId = Main.overview.connect('showing', () => this._controls.show());
         this._hidingId = Main.overview.connect('hiding', () => this._controls.hide());
         this.connect('destroy', () => {
             Main.overview.disconnect(this._showingId);
             Main.overview.disconnect(this._hidingId);
         });
+        */
     }
 });
 
@@ -200,6 +254,7 @@ class MultiMonitorsControlsManager extends St.Widget {
         this._thumbnailsSlider.pageEmpty();
     }
     
+    /*
     show() {
         this._viewSelector.visible = true;
         this._workspacesViews = Main.overview.viewSelector._workspacesDisplay._workspacesViews[this._monitorIndex];
@@ -231,6 +286,7 @@ class MultiMonitorsControlsManager extends St.Widget {
         });
         this._workspacesViews = null;
     }
+    */
 });
 
 
