@@ -49,11 +49,34 @@ class OverviewActorMonitor extends St.BoxLayout {
 
         this.add_constraint(new LayoutManager.MonitorConstraint({ index: monitorIndex }));
 
-        this._spacer = new St.Widget();
-        this.add_actor(this._spacer);
+        //this._spacer = new St.Widget();
+        //this.add_actor(this._spacer);
 
-        const searchEntry = new St.Entry({}); // placeholder
-        this._controls = new ControlsManagerMonitor(searchEntry, monitorIndex);
+        let panelGhost = new St.Bin({
+            child: new Clutter.Clone({ source: Main.panel }),
+            reactive: false,
+            opacity: 0,
+        });
+        this.add_actor(panelGhost);
+
+        this._searchEntry = new St.Entry({
+            style_class: 'search-entry',
+            /* Translators: this is the text displayed
+               in the search entry when no search is
+               active; it should not exceed ~30
+               characters. */
+            hint_text: _('Type to search'),
+            track_hover: true,
+            can_focus: true,
+        });
+        this._searchEntry.set_offscreen_redirect(Clutter.OffscreenRedirect.ALWAYS);
+        let searchEntryBin = new St.Bin({
+            child: this._searchEntry,
+            x_align: Clutter.ActorAlign.CENTER,
+        });
+        this.add_actor(searchEntryBin);
+
+        this._controls = new ControlsManagerMonitor(this._searchEntry, monitorIndex);
         this.add_child(this._controls);
     }
 });
@@ -96,7 +119,6 @@ class ControlsManagerMonitor extends OverviewControls.ControlsManager {
         this._thumbnailsBox = new ThumbnailsBoxMonitor(this._workspaceAdjustment, monitorIndex);
         this._thumbnailsSlider = new ThumbnailsSlider(this._thumbnailsBox);
 
-        //this.viewSelector = new St.Widget({ visible: false, x_expand: true, y_expand: true, clip_to_allocation: true });
         this.viewSelector = new ViewSelector.ViewSelector(searchEntry,
             this._workspaceAdjustment, this.dash.showAppsButton);
         this.viewSelector.connect('page-changed', this._setVisibility.bind(this));
@@ -112,15 +134,10 @@ class ControlsManagerMonitor extends OverviewControls.ControlsManager {
         this._group.add_child(this.viewSelector);
         this._group.add_actor(this._thumbnailsSlider);
 
-        //Main.overview.connect('showing', this._updateSpacerVisibility.bind(this));
-        this.connect('notify::allocation', this._updateSpacerVisibility.bind(this)); // From multi-monitor
+        Main.overview.connect('showing', this._updateSpacerVisibility.bind(this));
 
         this.connect('destroy', this._onDestroy.bind(this));
 
-        // from multi-monitor
-        this._monitorIndex = monitorIndex;
-        this._spacer_height = 0;
-        
         this._pageChangedId = Main.overview.viewSelector.connect('page-changed', this._setVisibility.bind(this));
         this._pageEmptyId = Main.overview.viewSelector.connect('page-empty', this._onPageEmpty.bind(this));
 
@@ -134,34 +151,10 @@ class ControlsManagerMonitor extends OverviewControls.ControlsManager {
         this._thumbnailsSlider._getAlwaysZoomOut = () => true;
     }
 
-    // TODO: onDestroy
-
-    // From multi-monitor
-    _updateSpacerVisibility() {
-        if (Main.layoutManager.monitors.length<this._monitorIndex)
-            return;
-
-        let top_spacer_height = Main.layoutManager.primaryMonitor.height;
-
-        let panelGhost_height = 0;
-        //if (Main.mmOverview[this._monitorIndex]._overview._panelGhost)
-        //if (global.foobar._panelGhost)
-            //panelGhost_height = Main.mmOverview[this._monitorIndex]._overview._panelGhost.get_height();
-        //    panelGhost_height = global.foobar._panelGhost.get_height();
-
-        let allocation = Main.overview._overview._controls.allocation;
-        let primaryControl_height = allocation.get_height();
-        let bottom_spacer_height = Main.layoutManager.primaryMonitor.height - allocation.y2;
-
-        top_spacer_height -= primaryControl_height + panelGhost_height + bottom_spacer_height;
-        top_spacer_height = Math.round(top_spacer_height);
-
-        //let spacer = Main.mmOverview[this._monitorIndex]._overview._spacer;
-        let spacer = global.foobar._spacer;
-        if (spacer.get_height()!=top_spacer_height) {
-            this._spacer_height = top_spacer_height;
-            spacer.set_height(top_spacer_height);
-        }
+    _onDestroy() {
+        Main.overview.viewSelector.disconnect(this._pageChangedId);
+        Main.overview.viewSelector.disconnect(this._pageEmptyId);
+        super.onDestroy();
     }
 
     _setVisibility() {
