@@ -53,153 +53,10 @@ class OverviewActorMonitor extends St.BoxLayout {
         this.add_actor(this._spacer);
 
         const searchEntry = new St.Entry({}); // placeholder
-        //this._controls = new ControlsManagerMonitor(searchEntry, monitorIndex);
-        this._controls = new MultiMonitorsControlsManager(monitorIndex);
+        this._controls = new ControlsManagerMonitor(searchEntry, monitorIndex);
         this.add_child(this._controls);
     }
 });
-
-var MultiMonitorsControlsManager = GObject.registerClass(
-class MultiMonitorsControlsManager extends OverviewControls.ControlsManager {
-    _init(index) {
-        this._monitorIndex = index;
-        this._workspacesViews = null;
-        this._spacer_height = 0;
-        this._visible = false;
-        
-        let layout = new OverviewControls.ControlsLayout();
-        St.Widget.prototype._init.call(this, {
-            layout_manager: layout,
-            x_expand: true,
-            y_expand: true,
-            clip_to_allocation: true,
-        });
-
-        this._workspaceAdjustment = Main.overview._overview._controls._workspaceAdjustment;
-
-        //this._thumbnailsBox =
-        //    new MultiMonitorsThumbnailsBox(this._workspaceAdjustment, this._monitorIndex);
-        this._thumbnailsBox = new ThumbnailsBoxMonitor(this._workspaceAdjustment, this._monitorIndex);
-        this._thumbnailsSlider = new OverviewControls.ThumbnailsSlider(this._thumbnailsBox); // Changed
-
-        //this.viewSelector = new St.Widget({ visible: false, x_expand: true, y_expand: true, clip_to_allocation: true });
-        const searchEntry = new St.Entry({});
-        const showAppsButton = new St.Button({});
-        this.viewSelector = new ViewSelector.ViewSelector(searchEntry,
-            this._workspaceAdjustment, showAppsButton);
-        this.viewSelector.connect('page-changed', this._setVisibility.bind(this));
-        this.viewSelector.connect('page-empty', this._onPageEmpty.bind(this));
-
-        this._pageChangedId = Main.overview.viewSelector.connect('page-changed', this._setVisibility.bind(this));
-        this._pageEmptyId = Main.overview.viewSelector.connect('page-empty', this._onPageEmpty.bind(this));
-
-        this._group = new St.BoxLayout({ name: 'mm-overview-group-'+index,
-                                         x_expand: true, y_expand: true });
-        //this.add_actor(this._group);
-
-        //this._group.add_child(this.viewSelector);
-        //this._group.add_actor(this._thumbnailsSlider);
-
-        this._thumbnailsSlider.slideOut();
-        this._thumbnailsBox._updatePorthole();
-
-        this.connect('notify::allocation', this._updateSpacerVisibility.bind(this));
-        //this.connect('destroy', this._onDestroy.bind(this));
-
-        // Added
-        this._thumbnailsSlider.layout.slideDirection = OverviewControls.SlideDirection.LEFT;
-        let first = this._group.get_first_child();
-        this._thumbnailsSlider.layout.slideDirection = OverviewControls.SlideDirection.LEFT;
-        this._thumbnailsBox.remove_style_class_name('workspace-thumbnails');
-        this._thumbnailsBox.set_style_class_name('workspace-thumbnails workspace-thumbnails-left');
-        this._group.set_child_below_sibling(this._thumbnailsSlider, first)
-        // XXX
-        this.dash = new Dash.Dash();
-        this._dashSlider = new DashSlider(this.dash);
-        this._dashSpacer = new DashSpacer();
-        this._dashSpacer.setDashActor(this._dashSlider);
-        this.add_actor(this._group);
-
-        this.add_actor(this._dashSlider);
-
-        this._group.add_actor(this._dashSpacer);
-        this._group.add_child(this.viewSelector);
-        this._group.add_actor(this._thumbnailsSlider);
-
-        // XXX
-        this.dash.hide();
-    }
-
-    _onDestroy() {
-        //Main.overview.viewSelector.disconnect(this._pageChangedId);
-        //Main.overview.viewSelector.disconnect(this._pageEmptyId);
-    }
-
-    _updateSpacerVisibility() {
-        if (Main.layoutManager.monitors.length<this._monitorIndex)
-            return;
-
-        let top_spacer_height = Main.layoutManager.primaryMonitor.height;
-
-        let panelGhost_height = 0;
-        //if (Main.mmOverview[this._monitorIndex]._overview._panelGhost)
-        //if (global.foobar._panelGhost)
-            //panelGhost_height = Main.mmOverview[this._monitorIndex]._overview._panelGhost.get_height();
-        //    panelGhost_height = global.foobar._panelGhost.get_height();
-
-        let allocation = Main.overview._overview._controls.allocation;
-        let primaryControl_height = allocation.get_height();
-        let bottom_spacer_height = Main.layoutManager.primaryMonitor.height - allocation.y2;
-
-        top_spacer_height -= primaryControl_height + panelGhost_height + bottom_spacer_height;
-        top_spacer_height = Math.round(top_spacer_height);
-
-        //let spacer = Main.mmOverview[this._monitorIndex]._overview._spacer;
-        let spacer = global.foobar._spacer;
-        if (spacer.get_height()!=top_spacer_height) {
-            this._spacer_height = top_spacer_height;
-            spacer.set_height(top_spacer_height);
-        }
-    }
-
-    _setVisibility() {
-        // Ignore the case when we're leaving the overview, since
-        // actors will be made visible again when entering the overview
-        // next time, and animating them while doing so is just
-        // unnecessary noise
-        if (!Main.overview.visible ||
-            (Main.overview.animationInProgress && !Main.overview.visibleTarget))
-            return;
-
-        let activePage = Main.overview.viewSelector.getActivePage();
-        let thumbnailsVisible = activePage == ViewSelector.ViewPage.WINDOWS;
-
-        let opacity = null;
-        if (thumbnailsVisible) {
-            opacity = 255;
-            this._thumbnailsSlider.slideIn();
-        }
-        else {
-            opacity = 0;
-            this._thumbnailsSlider.slideOut();
-        }
-
-        if (!this._workspacesViews)
-            return;
-
-        this._workspacesViews.ease({
-            opacity: opacity,
-            duration: OverviewControls.SIDE_CONTROLS_ANIMATION_TIME,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-        });
-    }
-/*
-    _onPageEmpty() {
-        this._thumbnailsSlider.pageEmpty();
-    }
-    */
-});
-
 
 var ControlsManagerMonitor = GObject.registerClass(
 class ControlsManagerMonitor extends OverviewControls.ControlsManager {
@@ -255,21 +112,63 @@ class ControlsManagerMonitor extends OverviewControls.ControlsManager {
         this._group.add_child(this.viewSelector);
         this._group.add_actor(this._thumbnailsSlider);
 
-        Main.overview.connect('showing', this._updateSpacerVisibility.bind(this));
+        //Main.overview.connect('showing', this._updateSpacerVisibility.bind(this));
+        this.connect('notify::allocation', this._updateSpacerVisibility.bind(this)); // From multi-monitor
 
         this.connect('destroy', this._onDestroy.bind(this));
 
+        // from multi-monitor
+        this._monitorIndex = monitorIndex;
+        this._workspacesViews = null;
+        this._spacer_height = 0;
+        
+        this._pageChangedId = Main.overview.viewSelector.connect('page-changed', this._setVisibility.bind(this));
+        this._pageEmptyId = Main.overview.viewSelector.connect('page-empty', this._onPageEmpty.bind(this));
+
+        this._thumbnailsSlider.slideOut();
+        this._thumbnailsBox._updatePorthole();
+
         // Added
-            this._thumbnailsSlider._getAlwaysZoomOut = () => true;
-        this.dash.hide();
-        this.viewSelector._onStageKeyPress = function(actor, event) {};
-        //this.viewSelector.x_expand = true;
-        //this.viewSelector.y_expand = true;
+        let first = this._group.get_first_child();
         this._thumbnailsSlider.layout.slideDirection = OverviewControls.SlideDirection.LEFT;
-        //this._pageChangedId = Main.overview.viewSelector.connect('page-changed', this._setVisibility.bind(this));
-        //this._pageEmptyId = Main.overview.viewSelector.connect('page-empty', this._onPageEmpty.bind(this));
+        this._thumbnailsBox.remove_style_class_name('workspace-thumbnails');
+        this._thumbnailsBox.set_style_class_name('workspace-thumbnails workspace-thumbnails-left');
+        this._group.set_child_below_sibling(this._thumbnailsSlider, first)
+        this.dash.hide();
+        this._thumbnailsSlider._getAlwaysZoomOut = () => true;
     }
 
+    // TODO: onDestroy
+
+    // From multi-monitor
+    _updateSpacerVisibility() {
+        if (Main.layoutManager.monitors.length<this._monitorIndex)
+            return;
+
+        let top_spacer_height = Main.layoutManager.primaryMonitor.height;
+
+        let panelGhost_height = 0;
+        //if (Main.mmOverview[this._monitorIndex]._overview._panelGhost)
+        //if (global.foobar._panelGhost)
+            //panelGhost_height = Main.mmOverview[this._monitorIndex]._overview._panelGhost.get_height();
+        //    panelGhost_height = global.foobar._panelGhost.get_height();
+
+        let allocation = Main.overview._overview._controls.allocation;
+        let primaryControl_height = allocation.get_height();
+        let bottom_spacer_height = Main.layoutManager.primaryMonitor.height - allocation.y2;
+
+        top_spacer_height -= primaryControl_height + panelGhost_height + bottom_spacer_height;
+        top_spacer_height = Math.round(top_spacer_height);
+
+        //let spacer = Main.mmOverview[this._monitorIndex]._overview._spacer;
+        let spacer = global.foobar._spacer;
+        if (spacer.get_height()!=top_spacer_height) {
+            this._spacer_height = top_spacer_height;
+            spacer.set_height(top_spacer_height);
+        }
+    }
+
+    // From multi-monitor
     _setVisibility() {
         // Ignore the case when we're leaving the overview, since
         // actors will be made visible again when entering the overview
