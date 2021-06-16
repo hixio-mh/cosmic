@@ -60,7 +60,7 @@ class OverviewActorMonitor extends St.BoxLayout {
 });
 
 var MultiMonitorsControlsManager = GObject.registerClass(
-class MultiMonitorsControlsManager extends St.Widget {
+class MultiMonitorsControlsManager extends OverviewControls.ControlsManager {
     _init(index) {
         this._monitorIndex = index;
         this._workspacesViews = null;
@@ -68,7 +68,7 @@ class MultiMonitorsControlsManager extends St.Widget {
         this._visible = false;
         
         let layout = new OverviewControls.ControlsLayout();
-        super._init({
+        St.Widget.prototype._init.call(this, {
             layout_manager: layout,
             x_expand: true,
             y_expand: true,
@@ -82,60 +82,57 @@ class MultiMonitorsControlsManager extends St.Widget {
         this._thumbnailsBox = new ThumbnailsBoxMonitor(this._workspaceAdjustment, this._monitorIndex);
         this._thumbnailsSlider = new OverviewControls.ThumbnailsSlider(this._thumbnailsBox); // Changed
 
-        this._viewSelector = new St.Widget({ visible: false, x_expand: true, y_expand: true, clip_to_allocation: true });
+        //this.viewSelector = new St.Widget({ visible: false, x_expand: true, y_expand: true, clip_to_allocation: true });
+        const searchEntry = new St.Entry({});
+        const showAppsButton = new St.Button({});
+        this.viewSelector = new ViewSelector.ViewSelector(searchEntry,
+            this._workspaceAdjustment, showAppsButton);
+        this.viewSelector.connect('page-changed', this._setVisibility.bind(this));
+        this.viewSelector.connect('page-empty', this._onPageEmpty.bind(this));
+
         this._pageChangedId = Main.overview.viewSelector.connect('page-changed', this._setVisibility.bind(this));
         this._pageEmptyId = Main.overview.viewSelector.connect('page-empty', this._onPageEmpty.bind(this));
 
         this._group = new St.BoxLayout({ name: 'mm-overview-group-'+index,
                                          x_expand: true, y_expand: true });
-        this.add_actor(this._group);
+        //this.add_actor(this._group);
 
-        this._group.add_child(this._viewSelector);
-        this._group.add_actor(this._thumbnailsSlider);
+        //this._group.add_child(this.viewSelector);
+        //this._group.add_actor(this._thumbnailsSlider);
 
-        //this._settings = Convenience.getSettings();
-        //this._thumbnailsOnLeftSideId = this._settings.connect('changed::'+THUMBNAILS_ON_LEFT_SIDE_ID,
-        //                                                        this._thumbnailsOnLeftSide.bind(this));
-        this._thumbnailsOnLeftSide();
         this._thumbnailsSlider.slideOut();
         this._thumbnailsBox._updatePorthole();
 
         this.connect('notify::allocation', this._updateSpacerVisibility.bind(this));
-        this.connect('destroy', this._onDestroy.bind(this));
+        //this.connect('destroy', this._onDestroy.bind(this));
 
         // Added
         this._thumbnailsSlider.layout.slideDirection = OverviewControls.SlideDirection.LEFT;
+        let first = this._group.get_first_child();
+        this._thumbnailsSlider.layout.slideDirection = OverviewControls.SlideDirection.LEFT;
+        this._thumbnailsBox.remove_style_class_name('workspace-thumbnails');
+        this._thumbnailsBox.set_style_class_name('workspace-thumbnails workspace-thumbnails-left');
+        this._group.set_child_below_sibling(this._thumbnailsSlider, first)
+        // XXX
+        this.dash = new Dash.Dash();
+        this._dashSlider = new DashSlider(this.dash);
+        this._dashSpacer = new DashSpacer();
+        this._dashSpacer.setDashActor(this._dashSlider);
+        this.add_actor(this._group);
+
+        this.add_actor(this._dashSlider);
+
+        this._group.add_actor(this._dashSpacer);
+        this._group.add_child(this.viewSelector);
+        this._group.add_actor(this._thumbnailsSlider);
+
+        // XXX
+        this.dash.hide();
     }
 
     _onDestroy() {
-        Main.overview.viewSelector.disconnect(this._pageChangedId);
-        Main.overview.viewSelector.disconnect(this._pageEmptyId);
-        //this._settings.disconnect(this._thumbnailsOnLeftSideId);
-    }
-
-    _thumbnailsOnLeftSide() {
-        let thumbnailsSlider;
-        thumbnailsSlider = this._thumbnailsSlider;
-
-        //if (this._settings.get_boolean(THUMBNAILS_ON_LEFT_SIDE_ID)) {
-        if (true) {
-            let first = this._group.get_first_child();
-            if (first != thumbnailsSlider) {
-                this._thumbnailsSlider.layout.slideDirection = OverviewControls.SlideDirection.LEFT;
-                this._thumbnailsBox.remove_style_class_name('workspace-thumbnails');
-                this._thumbnailsBox.set_style_class_name('workspace-thumbnails workspace-thumbnails-left');
-                this._group.set_child_below_sibling(thumbnailsSlider, first)
-            }
-        }
-        else {
-            let last = this._group.get_last_child();
-            if (last != thumbnailsSlider) {
-                this._thumbnailsSlider.layout.slideDirection = OverviewControls.SlideDirection.RIGHT;
-                this._thumbnailsBox.remove_style_class_name('workspace-thumbnails workspace-thumbnails-left');
-                this._thumbnailsBox.set_style_class_name('workspace-thumbnails');
-                this._group.set_child_above_sibling(thumbnailsSlider, last);
-            }
-        }
+        //Main.overview.viewSelector.disconnect(this._pageChangedId);
+        //Main.overview.viewSelector.disconnect(this._pageEmptyId);
     }
 
     _updateSpacerVisibility() {
@@ -196,10 +193,11 @@ class MultiMonitorsControlsManager extends St.Widget {
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
         });
     }
-
+/*
     _onPageEmpty() {
         this._thumbnailsSlider.pageEmpty();
     }
+    */
 });
 
 
@@ -244,8 +242,8 @@ class ControlsManagerMonitor extends OverviewControls.ControlsManager {
         //this.viewSelector = new St.Widget({ visible: false, x_expand: true, y_expand: true, clip_to_allocation: true });
         this.viewSelector = new ViewSelector.ViewSelector(searchEntry,
             this._workspaceAdjustment, this.dash.showAppsButton);
-        //this.viewSelector.connect('page-changed', this._setVisibility.bind(this));
-        //this.viewSelector.connect('page-empty', this._onPageEmpty.bind(this));
+        this.viewSelector.connect('page-changed', this._setVisibility.bind(this));
+        this.viewSelector.connect('page-empty', this._onPageEmpty.bind(this));
 
         this._group = new St.BoxLayout({ name: 'overview-group',
                                          x_expand: true, y_expand: true });
@@ -267,9 +265,45 @@ class ControlsManagerMonitor extends OverviewControls.ControlsManager {
         this.viewSelector._onStageKeyPress = function(actor, event) {};
         //this.viewSelector.x_expand = true;
         //this.viewSelector.y_expand = true;
-        // this._thumbnailsSlider.layout.slideDirection = OverviewControls.SlideDirection.LEFT;
+        this._thumbnailsSlider.layout.slideDirection = OverviewControls.SlideDirection.LEFT;
         //this._pageChangedId = Main.overview.viewSelector.connect('page-changed', this._setVisibility.bind(this));
         //this._pageEmptyId = Main.overview.viewSelector.connect('page-empty', this._onPageEmpty.bind(this));
+    }
+
+    _setVisibility() {
+        // Ignore the case when we're leaving the overview, since
+        // actors will be made visible again when entering the overview
+        // next time, and animating them while doing so is just
+        // unnecessary noise
+        if (!Main.overview.visible ||
+            (Main.overview.animationInProgress && !Main.overview.visibleTarget))
+            return;
+
+        let activePage = Main.overview.viewSelector.getActivePage();
+        let thumbnailsVisible = activePage == ViewSelector.ViewPage.WINDOWS;
+
+        let opacity = null;
+        if (thumbnailsVisible) {
+            opacity = 255;
+            this._thumbnailsSlider.slideIn();
+        }
+        else {
+            opacity = 0;
+            this._thumbnailsSlider.slideOut();
+        }
+
+        if (!this._workspacesViews)
+            return;
+
+        this._workspacesViews.ease({
+            opacity: opacity,
+            duration: OverviewControls.SIDE_CONTROLS_ANIMATION_TIME,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+        });
+    }
+
+    _onPageEmpty() {
+        this._thumbnailsSlider.pageEmpty();
     }
 });
 
