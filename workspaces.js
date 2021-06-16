@@ -165,28 +165,6 @@ class MultiMonitorsControlsManager extends St.Widget {
         }
     }
 
-    getWorkspacesActualGeometry() {
-        let geometry;
-        if (this._visible) {
-            const [x, y] = this._viewSelector.get_transformed_position();
-            const width = this._viewSelector.allocation.get_width();
-            const height = this._viewSelector.allocation.get_height();
-            geometry = { x, y, width, height };
-        }
-        else {
-            let [x, y] = this.get_transformed_position();
-            const width = this.allocation.get_width();
-            let height = this.allocation.get_height();
-            y -= this._spacer_height;
-            height += this._spacer_height;
-            geometry = { x, y, width, height };
-        }
-        if (isNaN(geometry.x))
-            return null;
-        //global.log("actualG+ i: "+this._monitorIndex+" x: "+geometry.x+" y: "+geometry.y+" width: "+geometry.width+" height: "+geometry.height);
-        return geometry;
-    }
-
     _setVisibility() {
         // Ignore the case when we're leaving the overview, since
         // actors will be made visible again when entering the overview
