@@ -34,6 +34,10 @@ class OverviewMonitor extends Overview.Overview {
 
         Main.layoutManager.connect('monitors-changed', this._relayout.bind(this));
         this._relayout();
+
+        // XXX
+        //this._showingId = Main.overview.connect('showing', this.show.bind(this));
+        //this._hidingId = Main.overview.connect('hiding', this.hide.bind(this));
     }
 
     _updateBackgrounds() {
@@ -140,15 +144,30 @@ class ControlsManagerMonitor extends OverviewControls.ControlsManager {
 
         this._pageChangedId = Main.overview.viewSelector.connect('page-changed', this._setVisibility.bind(this));
         this._pageEmptyId = Main.overview.viewSelector.connect('page-empty', this._onPageEmpty.bind(this));
+        /*
+        this._pageChangedId = Main.overview.viewSelector.connect('page-changed', () => {
+            this.viewSelector._showPage(Main.overview.viewSelector._activePage)
+        });
+        this._pageEmptyId = Main.overview.viewSelector.connect('page-empty', this._onPageEmpty.bind(this));
+        */
 
         // Added
+        /*
         let first = this._group.get_first_child();
         this._thumbnailsSlider.layout.slideDirection = OverviewControls.SlideDirection.LEFT;
         this._thumbnailsBox.remove_style_class_name('workspace-thumbnails');
         this._thumbnailsBox.set_style_class_name('workspace-thumbnails workspace-thumbnails-left');
         this._group.set_child_below_sibling(this._thumbnailsSlider, first)
+        */
         this.dash.hide();
         this._thumbnailsSlider._getAlwaysZoomOut = () => true;
+
+        /*
+        this.viewSelector.show();
+        this.viewSelector.animateToOverview();
+        this.viewSelector.showApps();
+        this.viewSelector._workspacesDisplay.hide();
+        */
     }
 
     _onDestroy() {
