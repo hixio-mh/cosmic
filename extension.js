@@ -13,6 +13,8 @@ var { OVERVIEW_WORKSPACES, OVERVIEW_APPLICATIONS, OVERVIEW_LAUNCHER } = extensio
 var { overview_visible, overview_show, overview_hide, overview_toggle } = extension.imports.overview;
 var { CosmicTopBarButton } = extension.imports.topBarButton;
 var { settings_new_schema } = extension.imports.settings;
+const Workspaces = extension.imports.workspaces;
+const CosmicPanel = extension.imports.panel;
 
 let activities_signal_show = null;
 let appMenu_signal_show = null;
@@ -371,9 +373,15 @@ function enable() {
     settings.connect("changed::workspace-picker-left", () => {
         workspace_picker_direction(Main.overview._overview._controls, settings.get_boolean("workspace-picker-left"));
     });
+
+    global.foobar = new Workspaces.OverviewMonitor(0)._overview;
+
+    new CosmicPanel.PanelMonitor(0);
 }
 
 function disable() {
+    // TODO: revert workspace change
+
     // Restore applications shortcut
     const SHELL_KEYBINDINGS_SCHEMA = 'org.gnome.shell.keybindings';
     Main.wm.removeKeybinding('toggle-application-view');
