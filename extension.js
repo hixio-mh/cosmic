@@ -23,6 +23,7 @@ let applications_button = null;
 let search_signal_page_changed = null;
 let signal_overlay_key = null;
 let original_signal_overlay_key = null;
+let signal_monitors_show = null;
 
 let injections = [];
 
@@ -374,20 +375,26 @@ function enable() {
         workspace_picker_direction(Main.overview._overview._controls, settings.get_boolean("workspace-picker-left"));
     });
 
-    global.foobar = [];
-    Main.layoutManager.connect('monitors-changed', relayout);
+    signal_monitors_changed = Main.layoutManager.connect('monitors-changed', relayout);
     relayout();
 }
 
 function relayout() {
-    global.foobar.forEach(x => {
+    if (global.foobar === undefined) {
+        global.foobar = [];
+    }
+    let removed = global.foobar.splice(Main.layoutManager.monitors.length);
+    if (global.foobar[Main.layoutManager.primaryIndex] !== undefined) {
+        removed.push(global.foobar[Main.layoutManager.primaryIndex]);
+        delete global.foobar[Main.layoutManager.primaryIndex];
+    }
+    removed.forEach(x => {
         const overview = x.overview._overview;
         overview.get_parent().remove_child(overview);
         x.panel.get_parent().remove_child(x.panel);
     });
-    global.foobar = [];
     for (let i = 0; i < Main.layoutManager.monitors.length; i++) {
-        if (i != Main.layoutManager.primaryIndex) {
+        if (i != Main.layoutManager.primaryIndex && global.foobar[i] === undefined) {
             const overview = new Workspaces.OverviewMonitor(i);
             const panel = new CosmicPanel.PanelMonitor(i);
             workspace_picker_direction(overview._overview._controls, true); // XXX
@@ -398,6 +405,14 @@ function relayout() {
 
 function disable() {
     // TODO: revert workspace change
+    Main.layoutManager.disconnect(signal_monitors_changed);
+    signal_monitors_changed = null;
+    global.foobar.forEach(x => {
+        const overview = x.overview._overview;
+        overview.get_parent().remove_child(overview);
+        x.panel.get_parent().remove_child(x.panel);
+    });
+    delete global.foobar;
 
     // Restore applications shortcut
     const SHELL_KEYBINDINGS_SCHEMA = 'org.gnome.shell.keybindings';
