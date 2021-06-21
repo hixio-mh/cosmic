@@ -381,7 +381,8 @@ function enable() {
 
 function relayout() {
     global.foobar.forEach(x => {
-        x.overview.get_parent().remove_child(x.overview);
+        const overview = x.overview._overview;
+        overview.get_parent().remove_child(overview);
         x.panel.get_parent().remove_child(x.panel);
     });
     global.foobar = [];
@@ -390,7 +391,7 @@ function relayout() {
             const overview = new Workspaces.OverviewMonitor(i);
             const panel = new CosmicPanel.PanelMonitor(i);
             workspace_picker_direction(overview._overview._controls, true); // XXX
-            global.foobar.push({overview: overview, panel: panel});
+            global.foobar[i] = {overview: overview, panel: panel};
 	}
     }
 }
