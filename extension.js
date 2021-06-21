@@ -374,9 +374,25 @@ function enable() {
         workspace_picker_direction(Main.overview._overview._controls, settings.get_boolean("workspace-picker-left"));
     });
 
-    global.foobar = new Workspaces.OverviewMonitor(0)._overview;
+    global.foobar = [];
+    Main.layoutManager.connect('monitors-changed', relayout);
+    relayout();
+}
 
-    new CosmicPanel.PanelMonitor(0);
+function relayout() {
+    global.foobar.forEach(x => {
+        x.overview.get_parent().remove_child(x.overview);
+        x.panel.get_parent().remove_child(x.panel);
+    });
+    global.foobar = [];
+    for (let i = 0; i < Main.layoutManager.monitors.length; i++) {
+        if (i != Main.layoutManager.primaryIndex) {
+            const overview = new Workspaces.OverviewMonitor(i);
+            const panel = new CosmicPanel.PanelMonitor(i);
+            workspace_picker_direction(overview._overview._controls, true); // XXX
+            global.foobar.push({overview: overview, panel: panel});
+	}
+    }
 }
 
 function disable() {
