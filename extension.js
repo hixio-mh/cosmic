@@ -8,6 +8,7 @@ const OverviewControls = imports.ui.overviewControls;
 const SwitcherPopup = imports.ui.switcherPopup;
 const Util = imports.misc.util;
 const ViewSelector = imports.ui.viewSelector;
+const WorkspacesView = imports.ui.workspacesView;
 
 var { OVERVIEW_WORKSPACES, OVERVIEW_APPLICATIONS, OVERVIEW_LAUNCHER } = extension.imports.overview;
 var { overview_visible, overview_show, overview_hide, overview_toggle } = extension.imports.overview;
@@ -252,6 +253,13 @@ function enable() {
         this._fadePageOut(page);
     });
 
+    inject(WorkspacesView.WorkspacesView.prototype, "animateToOverview", function (animationType) {
+        // Moved zoom/fade to 'page-changed' handler
+
+        this._updateScrollPosition();
+        this._updateVisibility();
+    });
+
     // Hide activities button
     activities_signal_show = Main.panel.statusArea.activities.connect("show", function() {
         Main.panel.statusArea.activities.hide();
@@ -296,6 +304,37 @@ function enable() {
                     Main.overview._overview.add_style_class_name("cosmic-solid-bg");
                     hide_primary_overview_backgrounds();
                 }
+
+                Main.overview.viewSelector._workspacesDisplay._workspacesViews.forEach(view => {
+                    view._workspaces.forEach(workspace => {
+                        // remove signal handler
+                        if (workspace._cosmic_event_handler) {
+                            workspace.disconnect(workspace._cosmic_event_handler);
+                            delete workspace._cosmic_event_handler;
+                        }
+
+                        if (Main.overview.viewSelector._showAppsButton.checked && workspace.monitorIndex != Main.layoutManager.primaryIndex) {
+                            workspace.reactive = true;
+                            workspace._cosmic_event_handler = workspace.connect('captured-event', (actor, event) => {
+                                if (event.type() == Clutter.EventType.BUTTON_PRESS)
+                                    Main.overview.hide();
+                                // Blocks event handlers for child widgets
+                                return Clutter.EVENT_STOP;
+                            });
+                            if (workspace.layout_manager.stateAdjustment.value != 0)
+                                workspace.zoomFromOverview();
+                        } else {
+                            // TODO: better way
+                            if (workspace.layout_manager.stateAdjustment.value != 1) {
+                                if (!Main.overview.viewSelector._showAppsButton.checked)
+                                    workspace.zoomToOverview();
+                                else
+                                    workspace.fadeToOverview();
+                            }
+                        }
+                    });
+                });
+
             });
             return GLib.SOURCE_REMOVE;
         } else {
